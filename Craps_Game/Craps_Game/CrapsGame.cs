@@ -154,9 +154,17 @@ namespace Craps_Game
         public void ScoreCraps()
         {
             SqlConnection conDB = new SqlConnection(conString);
-            conDB.Open();
-            SqlCommand cmdDB = new SqlCommand();
-            cmdDB.CommandText = "INSERT INTO [Craps Player Info] ([Sum of Rolls]) VALUES ('" + rollSum + "')";
+            SqlCommand cmdWin = new SqlCommand("INSERT INTO [Craps Player Info] ([Number of Wins]) VALUES (@numofWins)",conDB);
+            SqlCommand cmdLoss = new SqlCommand("INSERT INTO [Craps Player Info] ([Number of Losses]) VALUES (@numofLosses)", conDB);
+            SqlCommand cmdRoll = new SqlCommand("INSERT INTO [Craps Player Info] ([Sum of Rolls]) VALUES (@numofRolls)", conDB);
+
+            int RowsAffected;
+
+            cmdWin.Parameters.Add("@numofWins", System.Data.SqlDbType.Int);
+            cmdLoss.Parameters.Add("@numofLosses", System.Data.SqlDbType.Int);
+            cmdRoll.Parameters.Add("@numofRolls", System.Data.SqlDbType.Int);
+
+            cmdRoll.Parameters["@numofRolls"].Value = Convert.ToInt32(rollSum);
 
             if (pointsMode == false)
             {
@@ -164,13 +172,21 @@ namespace Craps_Game
                 {
                     textBox1.Text = "You won!";
                     numOfWins = Int32.Parse(label_Win.Text);
+                    cmdWin.Parameters["@numofWins"].Value = Convert.ToInt32(numOfWins);
+                    conDB.Open();
+                    RowsAffected = cmdWin.ExecuteNonQuery();
+                    conDB.Close();
                     label_Win.Text = (numOfWins + 1).ToString();
                 }
                 else if (rollSum == 2 || rollSum == 3 || rollSum == 12)
                 {
                     textBox1.Text = "CRAPS! You lost.";
                     numOfLosses = Int32.Parse(label_Losses.Text);
+                    cmdLoss.Parameters["@numofLosses"].Value = Convert.ToInt32(numOfLosses);
                     label_Losses.Text = (numOfLosses + 1).ToString();
+                    conDB.Open();
+                    RowsAffected = cmdLoss.ExecuteNonQuery();
+                    conDB.Close();
                 }
                 else
                 {
@@ -184,9 +200,13 @@ namespace Craps_Game
             {
                 if (rollSum == point)
                 {
-                    textBox1.Text = "You hit your previous score of "+point+" You won!";
+                    textBox1.Text = "You hit your previous score of " + point + " You won!";
                     numOfWins = Int32.Parse(label_Win.Text);
+                    cmdWin.Parameters["@numofWins"].Value = Convert.ToInt32(numOfWins);
                     label_Win.Text = (numOfWins + 1).ToString();
+                    conDB.Open();
+                    RowsAffected = cmdWin.ExecuteNonQuery();
+                    conDB.Close();
                     pointsMode = false;
                 }
 
@@ -194,10 +214,17 @@ namespace Craps_Game
                 {
                     textBox1.Text = "You hit 7, You lost";
                     numOfLosses = Int32.Parse(label_Losses.Text);
+                    cmdLoss.Parameters["@numofLosses"].Value = Convert.ToInt32(numOfLosses);
                     label_Losses.Text = (numOfLosses + 1).ToString();
+                    conDB.Open();
+                    RowsAffected = cmdLoss.ExecuteNonQuery();
+                    conDB.Close();
                     pointsMode = false;
                 }
             }
+            conDB.Open();
+            RowsAffected = cmdRoll.ExecuteNonQuery();
+            conDB.Close();
         }
 
         private void button1_Click_1(object sender, EventArgs e)
